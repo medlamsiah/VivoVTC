@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 
 const yesNoToBool = (v: unknown) => {
   if (typeof v === "boolean") return v;
@@ -37,7 +40,10 @@ const schema = z.object({
   hasCardVTC: z.preprocess(yesNoToBool, z.boolean()),
   hasVehicle: z.preprocess(yesNoToBool, z.boolean()),
   experience: z.enum(["0-1", "1-3", "3+"]),
-  platforms: z.preprocess(toPlatformsArray, z.array(z.string()).min(1)),
+  platforms: z.preprocess(
+  toPlatformsArray,
+  z.array(z.string().min(1)).min(1)
+),
   weeklyHours: z.preprocess(toNumber, z.number().int().min(1).max(90)).optional(),
   message: z.string().max(800).optional().or(z.literal("")),
 });

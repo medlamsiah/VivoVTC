@@ -3,14 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
-  },
+ "scripts": {
+  "dev": "next dev",
+  "postinstall": "prisma generate",
+  "build": "prisma generate && prisma migrate deploy && next build",
+  "start": "next start",
+  "lint": "next lint"
+},
   "dependencies": {
     "@prisma/client": "^5.20.0",
     "clsx": "^2.1.1",
