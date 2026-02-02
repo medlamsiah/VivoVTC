@@ -1,50 +1,62 @@
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Force Next/Vercel to treat this route as dynamic (runtime only)
+export const dynamic = "force-dynamic";
+// Optional: ensure it runs on Node.js runtime (Prisma needs Node runtime)
+export const runtime = "nodejs";
+
 function csvEscape(v: unknown) {
-  const s = String(v ?? "");
-  if (s.includes(",") || s.includes('"') || s.includes("\n")) return '"' + s.replaceAll('"', '""') + '"';
-  return s;
+  const s = v === null || v === undefined ? "" : String(v);
+  return `"${s.replace(/"/g, '""')}"`;
 }
 
 export async function GET() {
-  const leads = await prisma.lead.findMany({ orderBy: { createdAt: "desc" } });
+  const leads = await prisma.lead.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
   const header = [
     "createdAt",
-    "fullName",
-    "email",
-    "phone",
-    "city",
     "hasCardVTC",
     "hasVehicle",
     "experience",
+    "hoursPerWeek",
     "platforms",
-    "weeklyHours",
-    "message",
-  ];
+    "firstName",
+    "lastName",
+    "email",
+    "phone",
+    "city",
+  ].join(",");
 
-  const rows = leads.map((l) =>
-    [
-      l.createdAt.toISOString(),
-      l.fullName,
-      l.email ?? "",
-      l.phone ?? "",
-      l.city ?? "",
-      l.hasCardVTC ? "yes" : "no",
-      l.hasVehicle ? "yes" : "no",
-      l.experience,
-      l.platforms,
-      l.weeklyHours ?? "",
-      l.message ?? "",
-    ].map(csvEscape).join(",")
-  );
+  const rows = leads
+    .map((l: any) =>
+      [
+        l.createdAt?.toISOString?.() ?? "",
+        l.hasCardVTC ?? "",
+        l.hasVehicle ?? "",
+        l.experience ?? "",
+        l.hoursPerWeek ?? "",
+        Array.isArray(l.platforms) ? l.platforms.join("|") : l.platforms ?? "",
+        l.firstName ?? "",
+        l.lastName ?? "",
+        l.email ?? "",
+        l.phone ?? "",
+        l.city ?? "",
+      ]
+        .map(csvEscape)
+        .join(",")
+    )
+    .join("\n");
 
-  const csv = [header.join(","), ...rows].join("\n");
+  const csv = `${header}\n${rows}\n`;
 
-  return new Response(csv, {
+  return new NextResponse(csv, {
     headers: {
-      "content-type": "text/csv; charset=utf-8",
-      "content-disposition": "attachment; filename=vivo-leads.csv",
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": 'attachment; filename="vivo_leads.csv"',
+      "Cache-Control": "no-store",
     },
   });
 }
