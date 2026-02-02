@@ -3,27 +3,26 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Lead {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
 
-  fullName      String
-  email         String?
-  phone         String?
-  city          String?
-  hasCardVTC    Boolean
-  hasVehicle    Boolean
-  experience    String   // "0-1", "1-3", "3+"
-  platforms     String   // csv
-  weeklyHours   Int?
-  message       String?
+  fullName    String
+  email       String?
+  phone       String?
+  city        String?
+  hasCardVTC  Boolean
+  hasVehicle  Boolean
+  experience  String
+  platforms   String
+  weeklyHours Int?
+  message     String?
 
-  // simulation history optional
-  simulations   Simulation[]
+  simulations Simulation[]
 }
 
 model Simulation {
@@ -31,6 +30,7 @@ model Simulation {
   createdAt DateTime @default(now())
   ca        Float
   net       Float
+
   leadId    String?
   lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
